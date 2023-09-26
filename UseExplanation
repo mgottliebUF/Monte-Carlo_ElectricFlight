@@ -1,0 +1,17 @@
+Key features of the code:
+
+Logging Setup: The code uses Python's logging module to log information at the INFO level.
+
+Parameter Loading: The load_params() function returns a dictionary containing average and standard deviation values for efficiency and consumption rate. It also defines probabilities for different types of system failures (propulsion, controls, avionics, mechanical, unidentified).
+
+Single Mission Simulation: simulate_mission() simulates a single flight mission. It takes the initial charge, the parameters (efficiency, consumption rate, and failure probabilities), and mission time steps as inputs. It returns the percentage of charge used compared to what was expected, along with whether a failure occurred and its type.
+
+Monte Carlo Simulation: monte_carlo_simulation() runs multiple instances of simulate_mission() to generate statistics on percentage of charge used, overall failure rate, and counts of each type of failure.
+
+Main Function: The main() function serves as the entry point for the code. It sets the initial conditions like initial charge and mission time steps, then runs the Monte Carlo simulation and logs the results.
+
+Data Visualization: A histogram is generated using matplotlib to display the distribution of "Percentage Used vs Expected."
+
+Reporting: The code uses logging to report the mean and standard deviation of the percentage of charge used, the failure rate, and the counts of different types of failures.
+
+Statistics Gathering: The code gathers the mean and standard deviation of the results for insight into how often flights use more or less energy than expected.
