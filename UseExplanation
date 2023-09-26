@@ -1,17 +1,87 @@
-Key features of the code:
+import numpy as np
+import matplotlib.pyplot as plt
+import logging
 
-Logging Setup: The code uses Python's logging module to log information at the INFO level.
+logging.basicConfig(level=logging.INFO)
 
-Parameter Loading: The load_params() function returns a dictionary containing average and standard deviation values for efficiency and consumption rate. It also defines probabilities for different types of system failures (propulsion, controls, avionics, mechanical, unidentified).
+def load_params() -> dict:
+    return {
+        'avg_efficiency': 0.95,
+        'std_efficiency': 0.05,
+        'avg_consumption_rate': 8,
+        'std_consumption_rate': 3,
+        'failure_prob': {
+            'propulsion': 0.0005,
+            'controls': 0.0003,
+            'avionics': 0.0002,
+            'mechanical': 0.00015,
+            'unidentified': 0.00005
+        }
+    }
 
-Single Mission Simulation: simulate_mission() simulates a single flight mission. It takes the initial charge, the parameters (efficiency, consumption rate, and failure probabilities), and mission time steps as inputs. It returns the percentage of charge used compared to what was expected, along with whether a failure occurred and its type.
+def simulate_mission(initial_charge: float, params: dict, mission_time_steps: np.array) -> tuple:
+    remaining_charge = initial_charge
+    expected_charge_used = 0
+    failure = False
+    failure_type = None
+    
+    for t in mission_time_steps:
+        efficiency = np.random.normal(params['avg_efficiency'], params['std_efficiency'])
+        consumption_rate = np.random.normal(params['avg_consumption_rate'], params['std_consumption_rate'])
+        
+        expected_charge_used += consumption_rate
+        remaining_charge = max(remaining_charge - consumption_rate / efficiency, 0)
 
-Monte Carlo Simulation: monte_carlo_simulation() runs multiple instances of simulate_mission() to generate statistics on percentage of charge used, overall failure rate, and counts of each type of failure.
+        for failure_section, prob in params['failure_prob'].items():
+            if np.random.rand() < prob:
+                failure = True
+                failure_type = failure_section
+                break
 
-Main Function: The main() function serves as the entry point for the code. It sets the initial conditions like initial charge and mission time steps, then runs the Monte Carlo simulation and logs the results.
+        if failure:
+            break
+            
+    percentage_used_vs_expected = 100 * (initial_charge - remaining_charge) / expected_charge_used
+    return percentage_used_vs_expected, failure, failure_type
 
-Data Visualization: A histogram is generated using matplotlib to display the distribution of "Percentage Used vs Expected."
+def monte_carlo_simulation(n: int, initial_charge: float, params: dict, mission_time_steps: np.array) -> tuple:
+    results = []
+    failures = 0
+    failure_counts = {k: 0 for k in params['failure_prob'].keys()}
 
-Reporting: The code uses logging to report the mean and standard deviation of the percentage of charge used, the failure rate, and the counts of different types of failures.
+    for _ in range(n):
+        percentage_used_vs_expected, failure, failure_type = simulate_mission(initial_charge, params, mission_time_steps)
+        results.append(percentage_used_vs_expected)
+        
+        if failure:
+            failures += 1
+            failure_counts[failure_type] += 1
+            
+    return results, failures / n, failure_counts
 
-Statistics Gathering: The code gathers the mean and standard deviation of the results for insight into how often flights use more or less energy than expected.
+def main():
+    initial_charge = 100
+    mission_time_steps = np.linspace(0, 100, 10)
+    params = load_params()
+    num_simulations = 100000
+    
+    logging.info("Starting Monte Carlo simulation for electric flight.")
+    
+    percentage_results, failure_rate, failure_counts = monte_carlo_simulation(num_simulations, initial_charge, params, mission_time_steps)
+    
+    mean_percentage = np.mean(percentage_results)
+    std_percentage = np.std(percentage_results)
+    
+    logging.info(f"Mean Percentage Used vs Expected: {mean_percentage}%")
+    logging.info(f"Standard Deviation of Percentage Used vs Expected: {std_percentage}%")
+    logging.info(f"Failure Rate: {failure_rate * 100}%")
+    logging.info(f"Failure counts by type: {failure_counts}")
+
+    plt.hist(percentage_results, bins=50, density=True, alpha=0.6, color='b')
+    plt.title('Distribution of Percentage Used vs Expected')
+    plt.xlabel('Percentage Used vs Expected (%)')
+    plt.ylabel('Frequency')
+    plt.show()
+
+if __name__ == "__main__":
+    main()
