@@ -63,7 +63,7 @@ def main():
     initial_charge = 100
     mission_time_steps = np.linspace(0, 100, 10)
     params = load_params()
-    num_simulations = 100000
+    num_simulations = 10000
     
     logging.info("Starting Monte Carlo simulation for electric flight.")
     
@@ -77,7 +77,8 @@ def main():
     logging.info(f"Failure Rate: {failure_rate * 100}%")
     logging.info(f"Failure counts by type: {failure_counts}")
 
-    plt.hist(percentage_results, bins=50, density=True, alpha=0.6, color='b')
+    # Changed density to False and bins to 20 to increase the frequency range on the Y-axis
+    plt.hist(percentage_results, bins=20, density=False, alpha=0.6, color='b')
     plt.title('Distribution of Percentage Used vs Expected')
     plt.xlabel('Percentage Used vs Expected (%)')
     plt.ylabel('Frequency')
