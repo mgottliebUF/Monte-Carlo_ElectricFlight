@@ -63,7 +63,7 @@ def main():
     initial_charge = 100
     mission_time_steps = np.linspace(0, 100, 10)
     params = load_params()
-    num_simulations = 10000
+    num_simulations = 100000
     
     logging.info("Starting Monte Carlo simulation for electric flight.")
     
